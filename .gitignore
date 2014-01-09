@@ -1,0 +1,15 @@
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# Maven
+log/
+target/
+
+# Local HSQLDB
+HSQLDB/
+
+# Yeoman
+yo/
