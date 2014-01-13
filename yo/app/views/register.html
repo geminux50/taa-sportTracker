@@ -1,0 +1,46 @@
+<div class="header">
+	<ul class="nav nav-pills pull-right">
+		<li class="inactive"><a ng-href="#/">Accueil</a></li>
+		<li class="inactive"><a ng-href="#/about">A propos</a></li>
+	</ul>
+	<h3 class="text-muted">Bienvenue sur sportTracker !</h3>
+</div>
+
+<div ng-controller="UserCtrl">
+	<form ng-submit="register()">
+		<fieldset>
+			<label>
+				<span>Nom </span>
+				<input ng-model="user.firstname" type="text" autofocus />
+			</label><br>
+			<label>
+				<span>Prénom </span>
+				<input ng-model="user.lastname" type="text" />
+			</label><br>
+			<label>
+				<span>Pseudo * </span>
+				<input ng-model="user.pseudo" type="text" required />
+			</label><br>
+			<label>
+				<span>Email * </span>
+				<input ng-model="user.mail" type="text" required />
+			</label><br>
+			<label>
+				<span>Password * </span>
+				<input ng-model="user.password" type="text" required />
+			</label><br>
+			<input class="btn-primary" type="submit" value="Créer !"
+				ng-disabled="{{loginForm.$invalid}}" />
+		</fieldset>
+	</form><br>
+	Debug View:
+	<pre>http status code: {{status}}</pre>
+	<pre>http response data: {{data}}</pre>
+	<pre>user={{user | json}}</pre>
+
+</div>
+
+
+<div class="footer">
+	<p>SportTracker est publié sous license MIT - Réalisé en M2GL@2014</p>
+</div>

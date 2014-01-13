@@ -10,6 +10,3 @@ target/
 
 # Local HSQLDB
 HSQLDB/
-
-# Yeoman
-yo/
