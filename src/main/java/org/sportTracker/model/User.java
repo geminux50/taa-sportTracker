@@ -47,6 +47,12 @@ public class User {
 		this.friends = new ArrayList<User>();
 		this.workouts = new ArrayList<Workout>();
 	}
+	public User(String pseudo, String mail, String password) {
+		this();
+		this.setPseudo(pseudo);
+		this.setPassword(password);
+		this.setMail(mail);
+	}
 
 	public User(String name, String surname, String password, Date birthDate,
 			float weight, GenderEnum gender, String pseudo, String cmptFB,

@@ -3,6 +3,8 @@ package org.sportTracker.ws;
 import java.util.Collection;
 import java.util.Date;
 
+import javax.ws.rs.core.Response;
+
 import org.sportTracker.model.User;
 
 /**
@@ -25,10 +27,7 @@ public interface UserServices {
 	 * 
 	 * @return une info texte pour l'instant...TODO
 	 */
-	public String createUser(String name, String surname, String password,
-			Date birthDate, float weight, boolean gender, String pseudo,
-			String cmptFB, String cmptTW, String mailAdr, String avatar,
-			String group);
+	public Response createUser(User user);
 
 	/**
 	 * @see User.class
@@ -80,7 +79,7 @@ public interface UserServices {
 	 */
 	public String updateUser();
 
-	public String login(String pseudo, String password);
+	public Response login(User user);
 
 	public boolean addFriend(String pseudo, String friendPseudo);
 

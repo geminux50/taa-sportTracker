@@ -17,6 +17,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.jboss.logging.Logger;
@@ -41,39 +42,47 @@ public class UserServicesImpl implements UserServices {
 	@Override
 	@POST
 	@Path("/login")
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String login(@FormParam("pseudo") String pseudo,
-			@FormParam("password") String password) {
+	public Response login(User candidateUser) {
 
 		EntityManager em = emf.createEntityManager();
 		log.debug("Starting new per-request EntityManager: " + em.toString());
 		UserDao userDao = new UserDao(em);
 
 		try {
-			String tokenKey;
-			User candidateUser = userDao.getUserByPseudo(pseudo);
+			String status = "Failed - Unknown error";
 			if (candidateUser != null) {
-				if (candidateUser.getPassword().equals(password)) {
-					log.debug("User " + pseudo + " found.");
-					tokenKey = TokenService.generateTokenKey();
-					candidateUser.setTokenKey(tokenKey);
-					if (!userDao.updateUser(candidateUser)) {
-						throw new WebApplicationException(new Throwable(
-								"Unable to store tokenKey"),
-								Status.INTERNAL_SERVER_ERROR);
+				User existingUser = userDao.getUserByPseudo(candidateUser
+						.getPseudo());
+				if (existingUser != null) {
+					if (existingUser.getPassword().equals(
+							candidateUser.getPassword())) {
+						log.debug("User " + candidateUser.getPassword()
+								+ " found.");
+						String tokenKey = TokenService.generateTokenKey();
+						existingUser.setTokenKey(tokenKey);
+						status = tokenKey;
+						if (!userDao.updateUser(existingUser)) {
+							throw new WebApplicationException(new Throwable(
+									"Unable to store tokenKey"),
+									Status.INTERNAL_SERVER_ERROR);
+						}
+					} else {
+						log.debug("User authentication for '"
+								+ candidateUser.getPseudo()
+								+ "' FAILED (Wrong password).");
+						status = "Mauvais mot de passe";
 					}
 				} else {
-					log.debug("User authentication for '" + pseudo
-							+ "' FAILED (Wrong password).");
-					throw new WebApplicationException(Status.UNAUTHORIZED);
+					log.debug("User authentication for '"
+							+ candidateUser.getPseudo()
+							+ "' FAILED (User does NOT exists).");
+					status = "utilisateur inconnu";
 				}
-			} else {
-				log.debug("User authentication for '" + pseudo
-						+ "' FAILED (User does NOT exists).");
-				throw new WebApplicationException(Status.UNAUTHORIZED);
+
 			}
-			return tokenKey;
+			return Response.status(201).entity(status).build();
 		} finally {
 			log.debug("Closing per-request EntityManager: " + em.toString());
 			em.close();
@@ -87,50 +96,49 @@ public class UserServicesImpl implements UserServices {
 	@Override
 	@POST
 	@Path("/create")
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String createUser(@FormParam("name") String name,
-			@FormParam("surname") String surname,
-			@FormParam("password") String password,
-			@FormParam("birthdate") Date birthdate,
-			@FormParam("weight") float weight,
-			@FormParam("gender") boolean gender,
-			@FormParam("pseudo") String pseudo,
-			@FormParam("fbAcct") String fbAcct,
-			@FormParam("twAcct") String twAcct, @FormParam("mail") String mail,
-			@FormParam("group") String group, @FormParam("avatar") String avatar) {
+	public Response createUser(User user) {
 
 		EntityManager em = emf.createEntityManager();
 		log.debug("Starting new per-request EntityManager: " + em.toString());
 		UserDao userDao = new UserDao(em);
 
 		try {
-			String status = "failed";
-			if (pseudo != null && mail != null && password != null) {
-				if (!pseudo.trim().isEmpty() && !mail.trim().isEmpty()
-						&& !password.trim().isEmpty()) {
+			String status = "Failed - Unknown error";
+			if (user != null) {
 
-					// check availibility of unique attributes
-					if (userDao.mailIsAvailable(mail)
-							&& userDao.pseudoIsAvailable(pseudo)) {
-						GenderEnum genderType;
-						if (gender) {
-							genderType = GenderEnum.MAN;
+				// ensure expected values are set and NOT null
+				if (user.getPseudo() != null && user.getMail() != null
+						&& user.getPassword() != null) {
+					if (!user.getPseudo().trim().isEmpty()
+							&& !user.getMail().trim().isEmpty()
+							&& !user.getPassword().trim().isEmpty()) {
+
+						// check availibility of unique attributes
+						if (userDao.pseudoIsAvailable(user.getPseudo())) {
+							if (userDao.mailIsAvailable(user.getMail())) {
+								if (userDao.createUser(user)) {
+									status = "Utilisateur créé avec succès";
+								} else {
+									status = "Erreur de création de l'utilisateur";
+								}
+							} else {
+								status = "Cette adresse email est déjà utilisée";
+							}
 						} else {
-							genderType = GenderEnum.WOMAN;
+							status = "Ce pseudo est déjà utilisé";
 						}
 
-						User user = new User(name, surname, password,
-								birthdate, weight, genderType, pseudo, fbAcct,
-								twAcct, mail, avatar, group);
-
-						if (userDao.createUser(user)) {
-							status = "success";
-						}
+					} else {
+						status = "Veuillez renseigner un pseudo, un email et un mot de passe";
 					}
+				} else {
+					status = "Veuillez renseigner un pseudo, un email et un mot de passe";
 				}
 			}
-			return status;
+
+			return Response.status(201).entity(status).build();
 		} finally {
 			log.debug("Closing per-request EntityManager: " + em.toString());
 			em.close();
