@@ -4,10 +4,14 @@ taa-sportTracker
 Infos sur le projet :
 - Intégration de log4j
 - Génération d'un token par utilisateur pour authentifier les requetes
-- La configuration de la persisitance est écrase la bdd à chaque run du projet
+- Coté Tomcat, utilisation d'un RequestFilter pour valider le Header d'authentification (token)à chaque requêtes
+- Coté Angular, utilisation d'un interceptor pour ajouter le Header d'authentification (token)à toutes les requêtes
+- La configuration de la persistance écrase la bdd à chaque run du projet
+- Utilisation du sessionStorage à la place des cookies pour le stockage de données locales coté client.
 
 Structure :
-- Le dosser yo/ contient la partie angularjs
+- Le dossier src/ contient la parite java (Model + JPA + Jersey)
+- Le dosser yo/ contient la partie Yeoman/Angularjs
 
 Prérequis :
 - Eclipse JEE with maven
@@ -26,4 +30,4 @@ Procédure :
 - Essayer de supprimer les comptes utilisateurs
 
 Tips :
-- Dans apps.js (Angularjs) passer la variable 'gloabDebug' à 'true' pour activer le debug des requêtes coté client web
+- Dans apps.js (Angularjs) passer la variable 'globalDebug' à 'true' pour activer le debug des requêtes coté client web
