@@ -1,37 +1,28 @@
-//this is used to parse the profile
-//function url_base64_decode(str) {
-//	var output = str.replace('-', '+').replace('_', '/');
-//	switch (output.length % 4) {
-//	case 0:
-//		break;
-//	case 2:
-//		output += '==';
-//		break;
-//	case 3:
-//		output += '=';
-//		break;
-//	default:
-//		throw 'Illegal base64url string!';
-//	}
-//	return window.atob(output); // polifyll
-//	// https://github.com/davidchambers/Base64.js
-//}
-
 angular.module('sportTracker').controller(
-		'UserCtrl',
-		function($scope, $http, $window) {
-			$scope.isAuthenticated = false;
-			$scope.welcome = '';
-			$scope.message = '';
+		'UserCtrl', ['$route', '$scope', '$http', '$window', '$location',
+		function($route ,$scope, $http, $window, $location) {
+			  
+			$scope.debug = globalDebug;
 			var urlBase = '/rest/user';
 			
 			// create a new user
 			$scope.register = function() {
 				$http.post(urlBase + '/create', $scope.user).success(
-						function(data, status) {
+						function(data, status, headers, config) {
+							if (data.hasOwnProperty("success")) {
+								$scope.isRegistered = true;
+								//$location.path("/login");
+								} else {
+									$scope.isRegistered = false;
+									$scope.error_msg = data.error;
+								}
+							// debug
 							$scope.status = status;
 							$scope.data = data;
-						}).error(function(data, status) {
+						}).error(function(data, status, headers, config) {
+							$scope.isRegistered = false;
+							$scope.error_msg = data.error;
+							// debug
 							$scope.data = data || "Request failed";
 							$scope.status = status;
 				});
@@ -39,70 +30,165 @@ angular.module('sportTracker').controller(
 
 			$scope.login = function() {
 				$http.post(urlBase + '/login', $scope.user).success(
-						function(data, status) {
-							$scope.status = status;
+						function(data, status, headers, config) {
+							
+							function User(pseudo, mail, token) {
+								this.pseudo = pseudo;
+								this.mail = mail;
+								this.token = token;
+							}
+							if (data.hasOwnProperty("token")) {
+
+								var loggedUser = new User($scope.user.pseudo, $scope.user.mail, data.token);
+								$window.sessionStorage.setItem('loggedUser', JSON.stringify(loggedUser));
+								$location.path("/myFriends");
+								} else {
+									$window.sessionStorage.removeItem('loggedUser');
+									$scope.error_msg = data.error;
+								}
 							$scope.data = data;
-//							$window.sessionStorage.token = data.token;
-//							$scope.isAuthenticated = true;
-//							var encodedProfile = data.token.split('.')[1];
-//							var profile = JSON
-//									.parse(url_base64_decode(encodedProfile));
-//							$scope.welcome = 'Welcome ' + profile.first_name
-//									+ ' ' + profile.last_name;
-						}).error(function(data, status) {
+							$scope.status = status;
+						}).error(function(data, status, headers, config) {
+							$window.sessionStorage.removeItem('loggedUser');
 							$scope.data = data || "Request failed";
 							$scope.status = status;
-					// Erase the token if the user fails to log in
-//					delete $window.sessionStorage.token;
-//					$scope.isAuthenticated = false;
+							$scope.error_msg = data.error;
 
-					// Handle login errors here
-//					$scope.error = 'Error: Invalid user or password';
-//					$scope.welcome = '';
 				});
 			};
-//
-//			$scope.logout = function() {
-//				$scope.welcome = '';
-//				$scope.message = '';
-//				$scope.isAuthenticated = false;
-//				delete $window.sessionStorage.token;
-//			};
-//
-//			$scope.callRestricted = function() {
-//				$http({
-//					url : '/rest/user/getFriends',
-//					method : 'GET'
-//				}).success(function(data, status, headers, config) {
-//					$scope.message = $scope.message + ' ' + data.name; // Should
-//					// log
-//					// 'foo'
-//				}).error(function(data, status, headers, config) {
-//					alert(data);
-//				});
-//			};
-//
-		});
-//
-//sportTracker.factory('authInterceptor', function($rootScope, $q, $window) {
-//	return {
-//		request : function(config) {
-//			config.headers = config.headers || {};
-//			if ($window.sessionStorage.token) {
-//				config.headers.Authorization = 'Bearer '
-//						+ $window.sessionStorage.token;
-//			}
-//			return config;
-//		},
-//		response : function(response) {
-//			if (response.status === 401) {
-//				// handle the case where the user is not authenticated
-//			}
-//			return response || $q.when(response);
-//		}
-//	};
-//});
-//
-//sportTracker.config(function($httpProvider) {
-//	$httpProvider.interceptors.push('authInterceptor');
-//});
+			
+			$scope.isAuthenticated = function() {
+				var status = false;
+				var loggedUser = $.parseJSON($window.sessionStorage.getItem('loggedUser'));
+				if(loggedUser != null) {
+					if (loggedUser.token != null) {
+						status = true;
+					}
+				}
+				return status;
+			};
+			// Logout a user
+			// Will allways pass on the client side. May not remove token on the
+			// server side if request failed but, anyway a new token will be
+			// generated
+			// on next login success
+			$scope.logout = function() {
+				if ($scope.isAuthenticated()){
+					var loggedUser = $.parseJSON($window.sessionStorage.getItem('loggedUser'));
+					if(loggedUser != null) {
+						$http.post(urlBase + '/logout', loggedUser).success(
+								function(data, status, headers, config) {
+									if (data.hasOwnProperty("status")) {
+										if (data.status) {
+											// Succeed and Token removed from
+											// server persistance
+											// this is the clean way to do it
+											$window.sessionStorage.removeItem('loggedUser');
+										} else {
+											// Failed on server side but still
+											// logout client side
+											// Anyway, a new token will be
+											// generated on next login
+											// Ugly way (server and client are
+											// not sync)...but secure
+											$window.sessionStorage.removeItem('loggedUser');
+										}
+										// In both case we redirect to the main
+										// page
+										$location.path("/");
+										// debug
+										$scope.status = status;
+										$scope.data = data;
+									}
+								}).error(function(data, status, headers, config) {
+									// Failed on server side but still logout
+									// client side
+									// Anyway, a new token will be generated on
+									// next login
+									// Ugly way (server and client are not
+									// sync)...but secure
+									$window.sessionStorage.removeItem('loggedUser');
+									// debug
+									$scope.data = data || "Request failed";
+									$scope.status = status;
+								});
+					}
+				}
+			};
+			
+			$scope.getFriends = function() {
+				if ($scope.isAuthenticated()){
+					var loggedUser = $.parseJSON($window.sessionStorage.getItem('loggedUser'));
+					if(loggedUser != null) {
+						$http.get(urlBase + '/'+ loggedUser.pseudo +'/getFriends', loggedUser).success(
+								function(data, status, headers, config) {
+									$scope.friends = data;
+									// debug
+									$scope.status = status;
+									$scope.data = data;
+								}).error(function(data, status, headers, config) {
+									// debug
+									$scope.data = data || "Request failed";
+									$scope.status = status;
+								});
+					}
+				}
+			};
+			
+			$scope.addFriend = function() {
+				if ($scope.isAuthenticated()){
+					var loggedUser = $.parseJSON($window.sessionStorage.getItem('loggedUser'));
+					if(loggedUser != null) {
+						$http.post(urlBase + '/'+ loggedUser.pseudo +'/addFriend/' + $scope.newfriend.pseudo).success(
+								
+								function(data, status, headers, config) {
+									if (data.hasOwnProperty("message")) {
+										$scope.addFriendStatusMessage = data.message;
+										$route.reload();
+										} else {
+											$scope.addFriendStatusMessage = data.message;
+										}
+									// debug
+									$scope.status = status;
+									$scope.data = data;
+								}).error(function(data, status, headers, config) {
+									// debug
+									$scope.data = data || "Request failed";
+									$scope.status = status;
+									$scope.addFriendStatusMessage = data.message;
+								});
+					}
+				}
+			};
+			
+			$scope.delFriend = function(oldFriend) {
+				if ($scope.isAuthenticated()){
+					var loggedUser = $.parseJSON($window.sessionStorage.getItem('loggedUser'));
+					if(loggedUser != null) {
+						$http.post(urlBase + '/'+ loggedUser.pseudo +'/delFriend/' + oldFriend.pseudo).success(
+								
+								function(data, status, headers, config) {
+									if (data.hasOwnProperty("message")) {
+										//$scope.addFriendStatusMessage = data.message;
+										$route.reload();
+										} else {
+											$scope.addFriendStatusMessage = data.message;
+										}
+									// debug
+									$scope.status = status;
+									$scope.data = data;
+								}).error(function(data, status, headers, config) {
+									// debug
+									$scope.data = data || "Request failed";
+									$scope.status = status;
+									//$scope.addFriendStatusMessage = data.message;
+								});
+					}
+				}
+			};
+			
+
+
+		}]);
+
+

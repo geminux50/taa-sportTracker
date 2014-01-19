@@ -1,0 +1,58 @@
+<div class="header">
+	<ul class="nav nav-pills pull-right">
+		<li class="inactive"><a ng-href="/">Accueil</a></li>
+		<li ng-show="isAuthenticated()" class="active"><a ng-href="/myFriends">Mes amis</a></li>
+		<li ng-show="isAuthenticated()" class="inactive"><a ng-href="/myWorkouts">Mes Séances</a></li>
+		<li ng-show="isAuthenticated()" class="inactive" ><a ng-href="/" ng-click="logout()">Déconnexion</a></li>
+		<li class="inactive"><a ng-href="about">A propos</a></li>
+	</ul>
+	<h3 class="text-muted">sportTracker!</h3>
+</div>
+
+
+<div ng-controller="UserCtrl" ng-show="isAuthenticated()">
+
+	<label>
+			<span><u>Ajouter un ami</u></span>
+	</label><br>
+	<form ng-submit="addFriend()">
+		<fieldset>
+		<label><span>{{addFriendStatusMessage}}</span></label>
+			<label>
+				<span>Pseudo * </span>
+				<input ng-model="newfriend.pseudo" type="text" required />
+			</label><br>
+			<input class="btn-primary" type="submit" value="Ajouter !" />
+		</fieldset>
+	</form>
+	<br><br>
+	<table ng-init="getFriends()" class="table table-striped table-bordered">
+		<tbody>
+			<tr>
+				<th>Nom</th>
+				<th>Prénom</th>
+				<th>Age</th>
+				<th>Pseudo</th>
+				<th>Action</th>
+			</tr>
+			<tr ng-repeat="friend in friends">
+				<td>{{friend.lastname}}</td>
+				<td>{{friend.firstname}}</td>
+				<td>{{friend.age}}</td>
+				<td>{{friend.pseudo}}</td>
+				<td><button class="btn btn-small" type="button" ng-click="delFriend(friend)">Supprimer</button></td>
+			</tr>
+		</tbody>
+	</table>
+
+	<div ng-show="debug">
+		Debug View:
+		<pre>http status code: {{status}}</pre>
+		<pre>http response data: {{data}}</pre>
+	</div>
+	
+</div>
+
+<div class="footer">
+	<p>SportTracker est publié sous license MIT - Réalisé en M2GL@2014</p>
+</div>

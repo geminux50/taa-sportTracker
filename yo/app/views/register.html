@@ -1,12 +1,13 @@
 <div class="header">
 	<ul class="nav nav-pills pull-right">
-		<li class="inactive"><a ng-href="#/">Accueil</a></li>
-		<li class="inactive"><a ng-href="#/about">A propos</a></li>
+		<li class="inactive"><a ng-href="/">Accueil</a></li>
+		<li class="inactive"><a ng-href="/about">A propos</a></li>
 	</ul>
 	<h3 class="text-muted">Bienvenue sur sportTracker !</h3>
 </div>
 
 <div ng-controller="UserCtrl">
+	<span ng-show="!isRegistered">{{error_msg}}</span>
 	<form ng-submit="register()">
 		<fieldset>
 			<label>
@@ -27,16 +28,19 @@
 			</label><br>
 			<label>
 				<span>Password * </span>
-				<input ng-model="user.password" type="text" required />
+				<input ng-model="user.password" type="password" required />
 			</label><br>
 			<input class="btn-primary" type="submit" value="Créer !"
 				ng-disabled="{{loginForm.$invalid}}" />
 		</fieldset>
-	</form><br>
-	Debug View:
-	<pre>http status code: {{status}}</pre>
-	<pre>http response data: {{data}}</pre>
-	<pre>user={{user | json}}</pre>
+	</form>
+	<div ng-show="debug">
+		Debug View:
+		<pre>http status code: {{status}}</pre>
+		<pre>http response data: {{data}}</pre>
+		<pre>user={{user | json}}</pre>
+	</div>
+
 
 </div>
 

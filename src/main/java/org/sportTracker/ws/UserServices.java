@@ -54,13 +54,6 @@ public interface UserServices {
 	 */
 	public String getFriendByName();
 
-	/**
-	 * @see User.class
-	 * @category service web (fonction) retourne un amis
-	 * 
-	 * @return une info texte pour l'instant...TODO
-	 */
-	public String getFriends();
 
 	/**
 	 * @see User.class
@@ -81,10 +74,15 @@ public interface UserServices {
 
 	public Response login(User user);
 
-	public boolean addFriend(String pseudo, String friendPseudo);
+	public Response addFriend(String pseudo, String friendPseudo);
+	
+	public Response delFriend(String pseudo, String friendPseudo);
+
 
 	public Collection<User> getFriends(String tokenKey, String pseudo);
 
 	public Collection<User> getSubscribers(String tokenKey, String pseudo);
+
+	public Response logout(User user);
 
 }

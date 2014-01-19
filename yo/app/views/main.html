@@ -1,17 +1,28 @@
 <div class="header">
 	<ul class="nav nav-pills pull-right">
-		<li class="active"><a ng-href="#/">Accueil</a></li>
-		<li class="inactive"><a ng-href="#/about">A propos</a></li>
+		<li class="active"><a ng-href="/">Accueil</a></li>
+		<li ng-show="isAuthenticated()" class="inactive"><a ng-href="/myFriends">Mes amis</a></li>
+		<li ng-show="isAuthenticated()" class="inactive"><a ng-href="/myWorkouts">Mes Séances</a></li>
+		<li ng-show="isAuthenticated()" class="inactive" ><a ng-href="/" ng-click="logout()">Déconnexion</a></li>
+		<li class="inactive"><a ng-href="about">A propos</a></li>
 	</ul>
-	<h3 class="text-muted">Bienvenue sur sportTracker !</h3>
+	<h3 class="text-muted">sportTracker!</h3>
 </div>
 
-<div class="jumbotron">
+<div class="jumbotron"  ng-show="isAuthenticated()">
+	<ul class="nav nav-pills pull-right">
+		<li class="btn btn-lg btn-success"><a ng-href="/myFriends">Mes amis</a></li>
+		<li class="btn btn-lg btn-success"><a ng-href="/myWorkouts">Mes Séances</a></li>
+	</ul>
+</div>
+
+<div class="jumbotron" ng-show="!isAuthenticated()">
 	<p>
-		<a class="btn btn-lg btn-success" href="#/register">Créer un compte</a>
-		<a class="btn btn-lg btn-success" href="#/login">Se connecter</a>
+		<a class="btn btn-lg btn-success" ng-href="/register">Créer un compte</a>
+		<a class="btn btn-lg btn-success" ng-href="/login">Se connecter</a>
 	</p>
 </div>
+
 <div class="footer">
 	<p>SportTracker est publié sous license MIT - Réalisé en M2GL@2014</p>
 </div>

@@ -1,11 +1,20 @@
 <div class="header">
 	<ul class="nav nav-pills pull-right">
-		<li class="inactive"><a ng-href="#/">Accueil</a></li>
-		<li class="active"><a ng-href="#/about">A propos</a></li>
+		<li class="inactive"><a ng-href="/">Accueil</a></li>
+		<li ng-show="isAuthenticated()" class="inactive"><a ng-href="/myFriends">Mes amis</a></li>
+		<li ng-show="isAuthenticated()" class="inactive"><a ng-href="/myWorkouts">Mes Séances</a></li>
+		<li ng-show="isAuthenticated()" class="inactive" ><a ng-href="/" ng-click="logout()">Déconnexion</a></li>
+		<li class="active"><a ng-href="about">A propos</a></li>
 	</ul>
-	<h3 class="text-muted">Bienvenue sur sportTracker !</h3>
+	<h3 class="text-muted">sportTracker!</h3>
 </div>
 
+<div ng-controller="UserCtrl" ng-show="isAuthenticated()">
+	<ul class="nav nav-pills pull-right">
+		<li class="inactive"><a ng-href="/myFriends">Mes amis</a></li>
+		<li class="inactive"><a ng-href="/myWorkouts">Mes Séances</a></li>
+	</ul>
+</div>
 
 <div class="row marketing">
 	<h4>Cr&eacute;dits</h4>
